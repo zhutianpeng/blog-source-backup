@@ -1,5 +1,5 @@
 ---
-title: 牛客网>leetcode>二叉树算法 题目总结
+title: 牛客网 > leetcode > 二叉树算法 题目总结
 date: 2019-01-08 16:58:47
 tags:
 	- 牛客网
@@ -8,7 +8,105 @@ tags:
 
 牛客网上 [leetCode](https://www.nowcoder.com/ta/leetcode) 在线练习部分 全部二叉树算法汇总，索引到我的笔记
 
-## 二叉树
+## 数据结构
+![数据结构](https://selfstudy.oss-cn-beijing.aliyuncs.com/blog/20190830161228.png)
+
+
+## 二叉树遍历：
+```java
+public class Traverse {
+
+    //前序
+    public void preorder_traverse(TreeNode root) {
+        System.out.println(root.val);
+        if(root.left!=null) preorder_traverse(root.left);
+        if(root.right!=null)preorder_traverse(root.right);
+    }
+    //中序
+    public static void inorder_traverse(TreeNode root) {
+        if(root==null) return;
+        inorder_traverse(root.left);
+        System.out.println(root.val);
+        inorder_traverse(root.right);
+    }
+    //后序
+    public static void poster_traverse(TreeNode root) {
+        if(root==null) return;
+        poster_traverse(root.left);
+        poster_traverse(root.right);
+        System.out.println(root.val);
+    }
+
+//    前序遍历，存回溯的第一个节点（右节点）
+    public static void preorder_traverse2(TreeNode root){
+        if(root==null) return;
+        Stack<TreeNode> stack = new Stack<TreeNode>();
+        while(!stack.empty() || root!=null){
+            if(root!=null){
+                System.out.println(root.val);
+                if(root.right!=null) stack.push(root.right);
+                root=root.left;
+            }else{
+                root=stack.pop();
+            }
+        }
+    }
+
+//    中序遍历，存回溯的第一个节点（根节点）
+    public static void inorder_traverse2(TreeNode root){
+        if(root==null) return;
+        Stack<TreeNode> stack = new Stack<TreeNode>();
+        while(!stack.empty() || root!=null){
+            if(root!=null){
+                stack.push(root);
+                root=root.left;
+            }else{
+                root = stack.pop();
+                System.out.println(root.val);
+                root = root.right;
+            }
+        }
+    }
+
+//    后序遍历，按照先序遍历：根+右+左，然后再用stack倒序
+    public static void poster_traverse2(TreeNode root){
+        if(root==null) return;
+        Stack<TreeNode> stack = new Stack<TreeNode>();
+        Stack<Integer> result = new Stack<Integer>();
+        while(!stack.empty() || root!=null){
+            if(root!=null){
+                result.push(root.val);
+                if(root.left!=null) stack.push(root.left);
+                root=root.right;
+            }else{
+                root = stack.pop();
+            }
+        }
+        while(!result.empty()){
+            System.out.println(result.pop());
+        }
+    }
+
+    //    层序遍历，用queue实现
+    public static void layer_traverse(TreeNode root){
+        if(root==null) return;
+        Queue<TreeNode> queue = new LinkedList<TreeNode>();
+        queue.offer(root);
+        while(!queue.isEmpty()){
+            int qlength = queue.size(); //关键，只记录每一行个数
+            for(int i=0;i<qlength;i++){
+                TreeNode t = queue.poll();
+                System.out.println(t.val);
+                if(t.left!=null) queue.offer(t.left);
+                if(t.right!=null) queue.offer(t.right);
+            }
+        }
+    }
+}
+```
+
+
+## 二叉树题目：
 
 | | 题目 | 考点 |
 |:-----------:| :-------------:|:-------------:|

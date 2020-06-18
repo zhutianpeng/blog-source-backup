@@ -9,16 +9,19 @@ tags:
 MYSQL相关
 
 # 1. Mysql索引（InnerDB）
+
 ## 1. 创建索引
 
-```mysql> create table  information(
+```
+mysql> create table  information(
     -> inf_id  int(11)  auto_increment  primary  key  not  null,
     -> name  varchar(50)  not  null,
     -> sex  varchar(5)  not null,
     -> birthday  varchar(50)  not  null,
     -> index  info(name,sex)
     -> );
-```   
+```
+
 详见 https://blog.csdn.net/qq_41573234/article/details/80250279
 
 ## 2. 索引的概念
@@ -26,10 +29,23 @@ MYSQL相关
 想使用某种快速查找的算法，这前提必须是建立在某种有规律的特定的数据结构之上的。我们创建索引的过程，就是创建为了实现快速查找算法所必须的数据结构的过程。而在mysql中，想使用索引实现快速查找，可以简单理解为：必须要求索引的数据是按顺序排列的。
 
 ### 2.2 实现方式
+
 Mysql中，索引由 B+ Tree 实现，不用红黑树的原因：
+
+前言：
+
+B/B+树上操作的时间通常由 存取磁盘 的时间和 CPU计算时间 这两部分构成，这即是说，整个查询是由：
+- 机械臂移动到对应的节点的时间：【层数】 logm N
+- 在这个节点上查找的时间（如果是二分查找则最快）：【每层的比较数】 log2 M
+
+(整体查找相率为 logm N * log2 M = log2 N)，而且减少了磁盘的IO（所谓的IO就是磁头移动的次数）
+
+标准回答:
 
 - 更少的查找次数： 平衡树的查找深度与树高相关, B+树的出度更大，红黑树出度=2
 - 利用了磁盘的预读特性，数据库系统将索引的一个节点大小设置为页的大小，一次I/O就能完全载入一个节点。
+
+
 ## 3. 优化查询
 ### 3.1 单列索引
 算法成本：二叉树查找法，通过有规律的数据结构，快速定位到某个数据，比全表扫描快。使用索引之后，在一般情况下，无论是IO成本还是计算查找成本都远低于全表扫描。
@@ -44,6 +60,7 @@ Mysql中，索引由 B+ Tree 实现，不用红黑树的原因：
 - mysql查询优化器会判断纠正sql语句该以什么样的顺序执行效率最高，最后才生成真正的执行计划。
 
 例如 index info(name,cid), 会按照 name先排序，name 相同的情况下，再按照 cid 排序。
+
 ```
 使用到索引来查找：
 EXPLAIN SELECT * FROM student WHERE name='小红';
@@ -221,8 +238,11 @@ updates 在InnoDB 下会更快一些，尤其在并发量大的时候
 Lazy Loading
 
 # 3. 项目中出现的MySQL问题
+
 ## 1. Spring 事务：
+
 ### ztp遇到的问题：
+
 数据库事务在代码中需要注意，例如 Spring Transcation, 实际的项目里面不写会出现问题。
 
 ```java
@@ -273,6 +293,7 @@ public Long saveEvaluationRealtimeAndGradeRealtime(GradeEvaluationRealtimeView g
     - 分布式计算环境中,所有的资源都分布在多个系统中。分布式或全局事务跨多个系统执行，它的执行需要全局事务管理系统和所有相关系统的局部数据管理人员之间的协调。
 
 - Spring中事务源码
+
 ```java
 public interface PlatformTransactionManager {
    TransactionStatus getTransaction(TransactionDefinition definition) throws TransactionException;  //申明
@@ -290,7 +311,8 @@ public interface TransactionDefinition {
    int getTimeout();                //事务完成的最大时间
    boolean isReadOnly();            //事务是否只读
 }
-```  
+```
+
 
 - Spring的事务隔离级别
     - ISOLATION_DEFAULT: 这是默认的隔离级别。(ISOLATION_READ_COMMITTED)
@@ -300,6 +322,7 @@ public interface TransactionDefinition {
     - ISOLATION_SERIALIZABLE: 能够阻止误读、不可重复读和虚读。
 
 关于事务的并发一致性，封锁协议，隔离级别 ztp的理解如下（属于ACID的I）：
+
 | 并发一致性问题 | 封锁协议 | 隔离级别 |
 | :-----:|:------:|:-----:|
 | 丢失更新 | 一级封锁协议 | 未提交读 |
@@ -332,3 +355,55 @@ public interface TransactionDefinition {
 - mysql 4.0版本以下，varchar(50), 指的是50字节，如果存放utf8汉字时，只能存放16个（每个汉字3字节）
 
 - mysql 5.0版本以上，varchar(50), 指的是50字符，无论存放的是数字、字母还是UTF8汉字（每个汉字3字节），都可以存放50个。
+
+
+# 4. Mysql的切分
+## 1. 水平切分：（sharding）
+### 定义：
+【按行切分】 将同一个表中的记录拆分到多个结构相同的表中，分库分表，从而缓解单数据库的压力
+
+### sharding策略：
+- 哈希取模： hash(key)%N
+- 范围：可以是ID范围也可以是时间范围
+- 映射表： 使用单独的一个数据库来存储映射关系
+
+### sharding存在的问题
+- 事务问题：使用分布式事务解决
+- 连表查询：
+    - 单表查：可以将原来的连接分解成单表查询，然后再用户程序中进行连接。
+    - 广播表：在一个分库中保存全量的数据。
+- ID唯一性：
+    - 使用全局唯一的ID(GUID)
+    - 为每个分片指定一个ID的范围
+    - 分布式ID生成器（如：Twitter 的 Snowflake）
+
+## 2. 垂直切分：
+【按列切分】 将一张表按照列切分成多个表，例如将 电商库 => 商品库 + 用户数据库。
+
+# 5. Mysql复制
+## 1. 主从复制：
+- binlog线程: 将主数据库上的 “数据更新” 语句到二进制日志（Binary log）中。
+- I/O线程： 负责从主服务器上读取二进制日志，并写入从服务器的重放日志（replay log）中。
+- SQL线程：负责读取重放日志并重放其中的SQL语句。
+
+![主从复制三个线程](https://selfstudy.oss-cn-beijing.aliyuncs.com/blog/20190830215410.png)
+
+## 2. 读写分离：
+
+- 分工：
+    - 主服务器处理写操作+耗时读操作
+    - 从服务器处理读操作
+
+- 优点：
+    - 缓解 锁的争夺
+    - 从服务器可以使用 MyISAM，提升查询性能以及节约系统开销（MyISAM表锁，没有数据库事务）
+    - 增加冗余，提高可用性
+
+- 实现方式：  
+
+读写分离常用代理方式来实现，代理服务器接收应用层传来的读写请求，然后决定转发到哪个服务器。
+
+![读写分离的实现方式](https://selfstudy.oss-cn-beijing.aliyuncs.com/blog/20190830220229.png)
+
+- 相关实现方式链接： 
+[利用docker搭建Mysql集群篇章](https://ztxpp.cc/2019/01/16/dockerStudy/)

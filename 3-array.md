@@ -1,5 +1,5 @@
 ---
-title: 牛客网>leetcode>二叉树算法 题目总结
+title: 牛客网 > leetcode > 数组算法 题目总结
 date: 2019-02-28 16:58:47
 tags:
 	- 牛客网

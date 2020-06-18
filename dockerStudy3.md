@@ -20,7 +20,7 @@ tags:
 * 无中心节点，每个节点都是可读可写，客户端与redis节点直连，不需要中间代理层
 * 数据可以被分片存储，每个节点存储的数据不同（与PXC集群不同）；如果一个节点挂掉了，需要有冗余节点继续提供服务（备份）。
 * 管理方便，后续可自行增加和摘除节点
- ![redisCluster示意图](http://pl2eyyvre.bkt.clouddn.com/docker5-1.1%20redisCluster%E7%A4%BA%E6%84%8F%E5%9B%BE.png)
+ ![redisCluster示意图](http://selfstudy.oss-cn-beijing.aliyuncs.com/blog/docker5-1.1%20redisCluster%E7%A4%BA%E6%84%8F%E5%9B%BE.png)
 
 
  <!--more-->
@@ -35,7 +35,7 @@ tags:
 * Redis集群应该包含奇数个Master，至少有3个Master（原因：Redis集群和PXC节点有选举性，当一个节点挂掉，剩下的节点如果超过总数的一半，则通过选举选出中心节点，组成新的集群。只有2个节点则不可用）
 * Redis集群中每个Master都应该有Slave：
 
-![每个Master都应该有Slave](http://pl2eyyvre.bkt.clouddn.com/docker5-1.2%20%E4%B8%BB%E4%BB%8E.png)
+![每个Master都应该有Slave](http://selfstudy.oss-cn-beijing.aliyuncs.com/blog/docker5-1.2%20%E4%B8%BB%E4%BB%8E.png)
 
 * 此处不用搭建负载均衡，工程基于Spring,已经实现了负载均衡
 
@@ -43,7 +43,7 @@ tags:
 
 此处的架构图：
 
-![架构图](http://pl2eyyvre.bkt.clouddn.com/docker5-1.2%20%E4%B8%BB%E4%BB%8E%20%E7%BB%93%E6%9E%84.png)
+![架构图](http://selfstudy.oss-cn-beijing.aliyuncs.com/blog/docker5-1.2%20%E4%B8%BB%E4%BB%8E%20%E7%BB%93%E6%9E%84.png)
 
 ### 安装Redis镜像
 ```

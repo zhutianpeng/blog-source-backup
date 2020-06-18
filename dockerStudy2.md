@@ -13,7 +13,7 @@ tags:
 # 第四章 Mysql集群的搭建
 
 ## 1. 介绍
-![db集群介绍](http://pl2eyyvre.bkt.clouddn.com/docker4-1.1db%E9%9B%86%E7%BE%A4%E4%BB%8B%E7%BB%8D.png)
+![db集群介绍](http://selfstudy.oss-cn-beijing.aliyuncs.com/blog/docker4-1.1db%E9%9B%86%E7%BE%A4%E4%BB%8B%E7%BB%8D.png)
 * PXC (Percona XtraDB Cluster)：数据同步双向、强一致性（同步复制，不能同步就不会执行）
 * Replication： 数据同步单向、弱一致性（异步复制）
 
@@ -84,11 +84,11 @@ docker run -d -p 3311:3306 -v v5:/var/lib/mysql -e MYSQL_ROOT_PASSWORD=abc123456
 ```
 docker ps
 ```
-![db集群介绍](http://pl2eyyvre.bkt.clouddn.com/docker4-2.2db%E9%9B%86%E7%BE%A4%E7%9A%84%E5%88%9B%E5%BB%BA%E7%BB%93%E6%9E%9C.png)
+![db集群介绍](http://selfstudy.oss-cn-beijing.aliyuncs.com/blog/docker4-2.2db%E9%9B%86%E7%BE%A4%E7%9A%84%E5%88%9B%E5%BB%BA%E7%BB%93%E6%9E%9C.png)
 
 ### 2.5 利用远程数据库工具访问（这里选择datagrip）
 注意端口号应该是：3307-3311(配置的是宿主机的端口号，而不是容器的端口号，容器的端口号是3306)
-![datagrip](http://pl2eyyvre.bkt.clouddn.com/docker4-2.3db%E9%9B%86%E7%BE%A4%E7%9A%84%E5%88%9B%E5%BB%BA%E7%BB%93%E6%9E%9C.png)
+![datagrip](http://selfstudy.oss-cn-beijing.aliyuncs.com/blog/docker4-2.3db%E9%9B%86%E7%BE%A4%E7%9A%84%E5%88%9B%E5%BB%BA%E7%BB%93%E6%9E%9C.png)
 
 可以看见，有5个数据库连接的实例，分别来自5个不同的pxc节点
 
@@ -101,14 +101,14 @@ docker ps
 ## 3. 数据库的负载均衡
 ### 3.1 负载均衡的意义
 单节点处理多有请求，负载高，性能差。变成负载均衡之后，请求被均匀的发给每个节点，单点负载低，性能好。
-![负载均衡](http://pl2eyyvre.bkt.clouddn.com/docker4-3.1pxc%20%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1.png)
+![负载均衡](http://selfstudy.oss-cn-beijing.aliyuncs.com/blog/docker4-3.1pxc%20%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1.png)
 
 ### 3.2 通过 Haproxy 搭建5节点的数据库负载均衡
 下载haproxy的镜像
 ```
 docker pull haproxy
 ```
-创建Haproxy配置文件, 比较麻烦，详细参照[这个网站](https://zhangge.net/5125.html)。这里是我的haproxy的[配置文件](http://pl2eyyvre.bkt.clouddn.com/dockerhaproxy.cfg)
+创建Haproxy配置文件, 比较麻烦，详细参照[这个网站](https://zhangge.net/5125.html)。这里是我的haproxy的[配置文件](http://selfstudy.oss-cn-beijing.aliyuncs.com/blog/dockerhaproxy.cfg)
 
 ```
 touch /home/soft/haproxy.cfg
@@ -135,28 +135,29 @@ CREATE USER 'haproxy'@'%' IDENTIFIED BY '';
 ```
 
 通过管理界面查看数据库状态，地址为： <i>http://your_server_ip:4001/dbs</i>
-![管理界面1](http://pl2eyyvre.bkt.clouddn.com/docker4-3.2%205%E8%8A%82%E7%82%B9%E6%95%B0%E6%8D%AE%E5%BA%93%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1.png)
+
+![管理界面1](http://selfstudy.oss-cn-beijing.aliyuncs.com/blog/docker4-3.2%205%E8%8A%82%E7%82%B9%E6%95%B0%E6%8D%AE%E5%BA%93%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1.png)
 
 测试：挂掉一个节点
 ```
 docker stop node1
 ```
-![管理界面2](http://pl2eyyvre.bkt.clouddn.com/docker4-3.2%204%E8%8A%82%E7%82%B9%E6%95%B0%E6%8D%AE%E5%BA%93%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1.png)
+![管理界面2](http://selfstudy.oss-cn-beijing.aliyuncs.com/blog/docker4-3.2%204%E8%8A%82%E7%82%B9%E6%95%B0%E6%8D%AE%E5%BA%93%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1.png)
 
 
 ## 4. 负载均衡的 **高可用** 方案
 
 ### 4.1 单节点的 Haproxy 不具有高可用，需要冗余设计。 
-![单节点](http://pl2eyyvre.bkt.clouddn.com/docker4-4.1.png)
+![单节点](http://selfstudy.oss-cn-beijing.aliyuncs.com/blog/docker4-4.1.png)
 
 ### 4.2 虚拟IP技术： 
-![虚拟ip](http://pl2eyyvre.bkt.clouddn.com/docker4-4.2%20%E8%99%9A%E6%8B%9Fip.png)
+![虚拟ip](http://selfstudy.oss-cn-beijing.aliyuncs.com/blog/docker4-4.2%20%E8%99%9A%E6%8B%9Fip.png)
 
 ### 4.3 双机热备份：
-![双机热备份](http://pl2eyyvre.bkt.clouddn.com/docker4-4.3%20%E5%8F%8C%E6%9C%BA%E7%83%AD%E5%A4%87.png)
+![双机热备份](http://selfstudy.oss-cn-beijing.aliyuncs.com/blog/docker4-4.3%20%E5%8F%8C%E6%9C%BA%E7%83%AD%E5%A4%87.png)
 
 双机热备份方案（非常重要，这是后面内容的整体架构图）：
-![双机热备份](http://pl2eyyvre.bkt.clouddn.com/docker4-4.4%20%E5%8F%8C%E6%9C%BA%E7%83%AD%E5%A4%87%E4%BB%BD.png)
+![双机热备份](http://selfstudy.oss-cn-beijing.aliyuncs.com/blog/docker4-4.4%20%E5%8F%8C%E6%9C%BA%E7%83%AD%E5%A4%87%E4%BB%BD.png)
 
 步骤：
  Step1. 在h1容器内安装Keepalived, 在Haproxy所在的容器（ubuntu）之内：
@@ -196,7 +197,7 @@ service keepalived start
 # 测试
 ping 172.18.0.201
 ```
-![keepalived在haproxy1里面运行成功](http://pl2eyyvre.bkt.clouddn.com/docker4-4.5%20keepalived%E9%85%8D%E7%BD%AE%E6%88%90%E5%8A%9F.png)
+![keepalived在haproxy1里面运行成功](http://selfstudy.oss-cn-beijing.aliyuncs.com/blog/docker4-4.5%20keepalived%E9%85%8D%E7%BD%AE%E6%88%90%E5%8A%9F.png)
 
 keepalived已经在h1里成功运行
 
@@ -279,7 +280,7 @@ virtual_server 10.103.238.200 3306 {
 ```
 
 6个注意，成功：
-![成功](http://pl2eyyvre.bkt.clouddn.com/docker4-4.6%20success.png)
+![成功](http://selfstudy.oss-cn-beijing.aliyuncs.com/blog/docker4-4.6%20success.png)
 
 本节内容参考 [docker下用keepalived+Haproxy实现高可用负载均衡集群](https://blog.csdn.net/qq_21108311/article/details/82973763) 和 [高可用MySQL集群搭建](https://supercym.github.io/2019/01/15/Docker-Front-End-Sep-02/)
 
@@ -317,7 +318,7 @@ apt-get install percona-xtrabackup-24
 innobackupex --user=root --password=abc123456 /data/backup/full
 ```
 备份成功：
-![备份成功](http://pl2eyyvre.bkt.clouddn.com/docker4-5.1%E7%83%AD%E5%A4%87%E4%BB%BD%E5%AE%8C%E6%88%90.png)
+![备份成功](http://selfstudy.oss-cn-beijing.aliyuncs.com/blog/docker4-5.1%E7%83%AD%E5%A4%87%E4%BB%BD%E5%AE%8C%E6%88%90.png)
 ```
 # 进入容器目录查看
 # 进入容器外的目录查看,退出docker容器（ctrl+d）

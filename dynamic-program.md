@@ -1,5 +1,5 @@
 ---
-title: java OOM异常
+title: 动态规划
 date: 2019-04-23  16:58:47
 tags:
 	- java
@@ -26,6 +26,10 @@ tags:
     - 简单递归 + 备忘录算法 ： 时间复杂度和空间复杂度相同，为HashMap中的key的数量
 - bottom-up
     - 循环求解 ： 时间复杂度为 O(N M …) 其中 N,M 均为维度上面的衡量指标
+
+
+`从前往后用循环，从后往前用递归。`
+
 
 ## 3个难点：
 - 知道这个题目要用动态规划
@@ -117,8 +121,11 @@ public class Solution {
     }
 }
 ```
+
 ## 3. 挖金矿
 有一个国家发现了5座金矿，每座金矿的黄金储量不同，需要参与挖掘的工人数也不同。参与挖矿工人的总数是10人。每座金矿要么全挖，要么不挖，不能派出一半人挖取一半金矿。要求用程序求解出，要想得到尽可能多的黄金数目。
+
+参见： [程序员小灰漫画：什么是动态规划？（整合版）](https://mp.weixin.qq.com/s/3h9iqU4rdH3EIy5m6AzXsg)
 
 简单递归：时间复杂度 O(2^n)
 
@@ -165,7 +172,7 @@ public static int goldDigger2(int w, int n, int[] G, int[] P, HashMap<String,Int
 ## 4. Decode Ways
 题目： [leetcode91](https://leetcode.com/problems/decode-ways/)
 
-解答1. 数学公式法：（这种写起来比较清爽）
+解答1. 数学公式法：（这种写起来比较清爽，但是不太容易想到）
 ```java
 public static int decodeWays(String s){
     if(s==null||s.length()==0){
@@ -215,6 +222,131 @@ public static int decodeWay(String s, int n, HashMap<Integer,Integer> map){
         }
         map.put(n,value);
         return value;
+    }
+}
+```
+
+解答3： 递归写法( 这种写法比较直观，但是会有超时的风险)
+```java
+ public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        String s = sc.next();
+        System.out.print(find(s,s.length()));
+    }
+
+    public static int find(String s, int i){
+        if(i==0){
+            return 1;
+        }
+        if(i==1){
+            return s.charAt(0)=='0' ? 0 : 1;
+        }
+
+        int first = Integer.valueOf(s.substring(i-1,i));
+        int twins = Integer.valueOf(s.substring(i-2,i));
+        Boolean flag1=false, flag2=false;
+        if(first>=1 && first<=9){
+            flag1=true;
+        }
+        if(twins>=10 && twins<=26){
+            flag2=true;
+        }
+        if(flag1&&flag2){
+            return find(s,i-1)+find(s,i-2);
+        }else if(flag1){
+            return find(s,i-1);
+        }else if(flag2){
+            return find(s,i-2);
+        }
+        return 0;
+    }
+```
+
+
+## 5.1. Jump Game  
+题目： [LeetCode: 55.Jump Game](https://leetcode.com/problems/jump-game/)
+```java
+//探索法
+class Solution {
+    public boolean canJump(int[] nums) {
+        int reach=0;
+        for(int i=0;i<=reach;i++){
+            if(reach<=i+nums[i])    reach = i+nums[i];
+            if(reach>=nums.length-1)    return true;
+        }
+        return false;
+    }
+}
+```
+
+## 5.2 Jump Game2
+题目 [LeetCode: 45.Jump Game II](https://leetcode.com/problems/jump-game-ii/)
+```java
+//探索法，O(n)，每一次都要走最远才算一步
+class Solution {
+    public int jump(int[] nums) {
+        if(nums.length==1)  return 0;
+        int reach=0, nextreach=0, step=0;
+        int i=0;
+        while(i<=reach){
+            for(int j=i; j<=reach;j++){
+                if(nextreach<=j+nums[j]){
+                    nextreach=j+nums[j];
+                }
+                if(nextreach>=nums.length-1){
+                    return step+1;
+                }
+            }
+            i=reach+1;
+            reach=nextreach;
+            step++;
+        }
+        return -1;
+    }
+}
+```
+
+## 6. Minimum Path Sum
+题目 [LeetCode: 64. Minimum Path Sum](https://leetcode.com/problems/minimum-path-sum/)
+
+```java
+// 动态规划，由于只能向下走或者向右走，所以每一个格子只能由上一个格子或者左一个格子得到，取较小即可。
+class Solution {
+    public int minPathSum(int[][] grid) {
+        for(int i=1;i<grid[0].length;i++){
+            grid[0][i]=grid[0][i-1]+grid[0][i]; //边界
+        }
+        for(int i=1;i<grid.length;i++){
+            grid[i][0]=grid[i-1][0]+grid[i][0]; //边界
+        }
+        for(int i=1;i<grid.length;i++){
+            for(int j=1;j<grid[0].length;j++){
+                grid[i][j]=grid[i][j]+ Math.min(grid[i-1][j],grid[i][j-1]); //最优子结构
+            }
+        }
+        return grid[grid.length-1][grid[0].length-1];
+    }
+}
+```
+
+## 7. Triangle
+题目 [LeetCode: 120. Triangle](https://leetcode.com/problems/triangle/)
+```java
+//这个题目是典型的DP
+// 最优子结构： dp[i][j] = min{dp[i+1][j],dp[i+1][j+1]}+triangle.get[i].get[j]; 其中dp[i][j]的含义是从[i][j]位置 到最底层的路径和。
+// 注意边界条件涵盖在 循环当中了。
+
+class Solution {
+        public int minimumTotal(List<List<Integer>> triangle) {
+        int m=triangle.size();
+        int n=triangle.get(triangle.size()-1).size();
+        int[][] dp = new int[m+1][n+1];
+        for(int i=m-1;i>=0;i--){
+            for(int j=0;j<triangle.get(i).size();j++){
+                dp[i][j]= Math.min(dp[i+1][j],dp[i+1][j+1])+triangle.get(i).get(j);
+            }
+        }
+        return dp[0][0];
     }
 }
 ```
